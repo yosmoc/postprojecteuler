@@ -53,7 +53,6 @@ if ARGV.size == 2 then
   post_ppe.login
   post_ppe.post(ARGV[1], ARGV[2])
 else
-  p ARGV[1]
   p ARGV[2]
   log.error('error');
 end

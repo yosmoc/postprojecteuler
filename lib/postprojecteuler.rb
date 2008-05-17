@@ -1,10 +1,13 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
 require 'uri'
 require 'mechanize'
 require 'hpricot'
 require 'logger'
 require 'pp'
+require 'pit'
+require 'ostruct'
 
 class PostProjectEuler
   VERSION = '0.0.1'
@@ -13,17 +16,16 @@ class PostProjectEuler
 
   BASE = URI("http://projecteuler.net/")
 
-  def initialize(id, passwd)
-    @id = id
-    @passwd = passwd
+  def initialize(config)
+    @config = OpenStruct.new(config)
     @agent = WWW::Mechanize.new
   end
 
   def login
     login_page = @agent.get(BASE + '/index.php?section=login')
     login_form = login_page.forms.first
-    login_form.username = @id
-    login_form.password = @passwd
+    login_form.username = @config.username
+    login_form.password = @config.password
     result = @agent.submit(login_form, login_form.buttons.name('login'))
   end
 
@@ -45,14 +47,16 @@ class PostProjectEuler
   end
 end
 
-log = Logger.new(STDOUT)
-log.level = Logger::ERROR
+if __FILE__ == $0
+  log = Logger.new(STDOUT)
+  log.level = Logger::ERROR
 
-if ARGV.size == 2 then
-  post_ppe = PostProjectEuler.new('userid', 'password')
-  post_ppe.login
-  post_ppe.post(ARGV[1], ARGV[2])
-else
-  p ARGV[2]
-  log.error('error');
+  if ARGV.size == 2 then
+    post_ppe = PostProjectEuler.new('userid', 'password')
+    post_ppe.login
+    post_ppe.post(ARGV[1], ARGV[2])
+  else
+    p ARGV[2]
+    log.error('error');
+  end
 end

@@ -34,7 +34,7 @@ class PostProjectEuler
     answer_form = problem_page.forms.first
     answer_form.guess = answer
     result = @agent.submit(answer_form, answer_form.buttons.name(''))
-    answer_check(result)
+    # answer_check(result)
   end
 
   private

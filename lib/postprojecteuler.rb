@@ -61,12 +61,11 @@ class PostProjectEuler
     @logged
   end
 
-  # fake it!!!!!!!!!!!!!!!!!!!
   def answer_check(result)
-    if result.body =~ /Sorry, but the answer you gave appears to be incorrect/ then
+    if result.body =~ /(Sorry, but the answer you gave appears to be incorrect)/ then
       puts $1
-    elsif result.body =~ /hoge/ then
-      puts $1
+    elsif
+      puts 'correct'
     end
   end
 
@@ -81,15 +80,14 @@ if __FILE__ == $0
   log = Logger.new(STDOUT)
   log.level = Logger::ERROR
 
-  if ARGV.size == 2 then
+  if ARGV.size == 1 then
     post_ppe = PostProjectEuler.new(Pit.get("projecteuler.net", :require => {
                'username' => 'username',
                'password' => 'password'
                }))
     post_ppe.login
-    post_ppe.post(ARGV[1], ARGV[2])
+    post_ppe.post(ARGV[0], $stdin.gets.chomp)
   else
-    p ARGV[2]
-    log.error('error');
+    log.error('please input');
   end
 end

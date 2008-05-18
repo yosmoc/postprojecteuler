@@ -3,46 +3,73 @@
 require 'rubygems'
 require 'uri'
 require 'mechanize'
-require 'hpricot'
 require 'logger'
 require 'pp'
 require 'pit'
 require 'ostruct'
 
+class PostProjectEulerError < Exception; end
+class NotLoggedinError < PostProjectEulerError; end
+
 class PostProjectEuler
   VERSION = '0.0.1'
-
-  class PostProjectEulerError < StandardError; end
 
   BASE = URI("http://projecteuler.net/")
 
   def initialize(config)
     @config = OpenStruct.new(config)
     @agent = WWW::Mechanize.new
+    @logged = false
   end
 
   def login
-    login_page = @agent.get(BASE + '/index.php?section=login')
-    login_form = login_page.forms.first
-    login_form.username = @config.username
-    login_form.password = @config.password
-    result = @agent.submit(login_form, login_form.buttons.name('login'))
+    unless logined?
+      login_page = @agent.get(BASE + '/index.php?section=login')
+      login_form = login_page.forms.first
+      login_form.username = @config.username
+      login_form.password = @config.password
+      @agent.submit(login_form, login_form.buttons.name('login'))
+      @logged = true
+    end
+    @logged
+  end
+
+  def logout
+    logined_check
+    logout_page = @agent.get(BASE + './index.php?section=logout')
+    @logged = false
   end
 
   def post(question, answer)
+    logined_check
     problem_page = @agent.get(BASE + "/index.php?section=problems&id=#{question}")
     answer_form = problem_page.forms.first
-    answer_form.guess = answer
-    result = @agent.submit(answer_form, answer_form.buttons.name(''))
-    # answer_check(result)
+    if answer_form.respond_to?(:guess)
+      answer_form.guess = answer
+      result = @agent.submit(answer_form, answer_form.buttons.name(''))
+      answer_check(result)
+    else
+      raise PostProjectEulerError, "problem #{question} is already solved, please check problem number."
+    end
   end
 
   private
+  def logined?
+    @logged
+  end
+
+  # fake it!!!!!!!!!!!!!!!!!!!
   def answer_check(result)
     if result.body =~ /Sorry, but the answer you gave appears to be incorrect/ then
       puts $1
     elsif result.body =~ /hoge/ then
       puts $1
+    end
+  end
+
+  def logined_check
+    unless logined?
+      raise NotLoggedinError, 'Not Logged in. Please call login method and check username and password'
     end
   end
 end
@@ -52,7 +79,10 @@ if __FILE__ == $0
   log.level = Logger::ERROR
 
   if ARGV.size == 2 then
-    post_ppe = PostProjectEuler.new('userid', 'password')
+    post_ppe = PostProjectEuler.new(Pit.get("projecteuler.net", :require => {
+               'username' => 'username',
+               'password' => 'password'
+               }))
     post_ppe.login
     post_ppe.post(ARGV[1], ARGV[2])
   else

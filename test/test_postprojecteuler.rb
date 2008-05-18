@@ -12,11 +12,14 @@ class Test_PostProjectEuler < Test::Unit::TestCase
     @pe.login
   end
 
-  def test_login
-    assert_equal '200', @pe.login.code
+  def test_logout
+    assert_equal false, @pe.logout
   end
 
   def test_post
-    assert_equal '200', @pe.post(15, 3).code
+    @pe.logout
+    assert_raises (NotLoggedinError) { @pe.post(1, 1) }
+    @pe.login
+    assert_raises (PostProjectEulerError) { @pe.post(1, 1)}
   end
 end

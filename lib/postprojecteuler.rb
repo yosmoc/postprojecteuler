@@ -36,18 +36,21 @@ class PostProjectEuler
 
   def logout
     logined_check
+
     logout_page = @agent.get(BASE + './index.php?section=logout')
     @logged = false
   end
 
   def post(question, answer)
     logined_check
+
     problem_page = @agent.get(BASE + "/index.php?section=problems&id=#{question}")
     answer_form = problem_page.forms.first
-    if answer_form.respond_to?(:guess)
-      answer_form.guess = answer
+    if !!answer_form['guess']
+      answer_form['guess'] = answer
       result = @agent.submit(answer_form, answer_form.buttons.name(''))
       answer_check(result)
+      return result
     else
       raise PostProjectEulerError, "problem #{question} is already solved, please check problem number."
     end

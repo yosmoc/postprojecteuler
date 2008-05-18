@@ -4,7 +4,6 @@ require 'rubygems'
 require 'uri'
 require 'mechanize'
 require 'logger'
-require 'pp'
 require 'pit'
 require 'ostruct'
 
@@ -86,8 +85,11 @@ if __FILE__ == $0
                'password' => 'password'
                }))
     post_ppe.login
-    post_ppe.post(ARGV[0], $stdin.gets.chomp)
+    number = ARGV[0]
+    answer = $stdin.gets.chomp
+    puts "Problem: #{number}, Answer: #{answer}"
+    post_ppe.post(number, answer)
   else
-    log.error('please input');
+    log.error('please input problem number');
   end
 end
